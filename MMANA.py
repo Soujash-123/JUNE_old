@@ -8,10 +8,12 @@ import psutil
 import os
 from turtle import *
 import pywhatkit as kit
-
+import wikipedia
+import PyPDF2
+from tkinter.filedialog import *
 engine=pyttsx3.init()
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[1].id) #changing index changes voices but ony 0 and 1 are working here
+engine.setProperty('voice', voices[0].id) #changing index changes voices but ony 0 and 1 are working here
 engine.runAndWait()
 rate=engine.getProperty('rate')
 engine.setProperty('rate',170)
@@ -97,11 +99,6 @@ def intro_screen():
 
 
 
-
-
-
-
-
 def speak(audio):
       engine.say(audio)
       engine.runAndWait()
@@ -115,7 +112,7 @@ def Greetings():
         speak("Good Evening,sir!")
 intro_screen()
 Greetings()
-speak("MMANA at your service")
+speak("SAGNIK at your service")
 speak("Please wait for a few seconds. ")
 speak("Importing Battery Status.....")
 battery = psutil.sensors_battery()
@@ -151,17 +148,19 @@ def window():
         var = StringVar()
         label = Label( textvariable=var, relief=RAISED ,bg="white")
         var.set(response(input_get))
-        speak(response(input_get))
+        'speak(response(input_get))'
+        label.pack_propagate(True)
         label.pack()
-        label.place(height=100, width=210,x=0,y=120)
+        label.place(x=0,y=120)
         label = Label(frame, text=input_get,relief=RAISED,bg="pale green")
         input_user.set('')
+        label.pack_propagate(True)
         label.pack()
-        label.place(height=100,width=210,x=90,y=0)
+        label.place(x=1390,y=0)
         return "break"
 
-    frame = Frame(window, width=300, height=300)
-    frame.pack_propagate(False) # prevent frame to resize to the labels size
+    frame = Frame(window, width=1600, height=600)
+    frame.pack_propagate(True) # to resize frame according to the labels size
     input_field.bind("<Return>", enter_pressed)
     frame.pack()
     btn1 = Button(window, text ="Exit", command = window.destroy).pack()
@@ -219,17 +218,18 @@ def MusicWindow(cmd):
        
 def response(cmd):
     keyword=[]                          # Declare an empty list named mylines.
-    with open ("keywords(forMMANA).txt", 'rt') as myfile: # Open intents.json for reading text data.
+    with open ('Intents.txt', 'rt') as myfile: # Open intents.json for reading text data.
         for myline in myfile:                # For each line, stored as myline,
            keyword.append(myline)       # add its contents to mylines.
     questions=[]
-    with open('Questions(forMMANA).txt',"rt")as myfile:
+    with open('Questions.txt',"rt")as myfile:
         for myline in myfile:
             questions.append(myline)
     response=[]
-    with open ("response(forMMANA).txt","rt")as myfile:
+    with open ("Response.txt","rt")as myfile:
         for myline in myfile:
             response.append(myline)
+    a=cmd.split()
     st=""
     greetings = ['hey there', 'hello', 'hi', 'hai', 'hey!', 'hey']
     gret=["good morning","good evening","good night","good afternoon"] 
@@ -247,7 +247,7 @@ def response(cmd):
     cmd8 = ['what is you favourite colour', 'what is your favourite color']
     cmd9 = ['thank you']
     repfr9 = ['you are welcome', 'glad i could help you']
-    name1=["MMANA","Man Made Artificially Natural Adult"]
+    name1=["SAGNIK","Superficially Artificial Gaming Noob but Intelligent Kid"]
     appreciation=["you are great"," you are cool","you are the best","i love you"]
     fav=["play my favourite song"]
     siblings=["do you have any siblings","name your siblings"]
@@ -257,12 +257,12 @@ def response(cmd):
     command=["train"]
     religion=["do you believe in god","what is your religion","are you an aethist"]
     bday=["when was your birthday","when were you born","when is your bday","when was your bday","when is your birthday"]
-    sendmsg=["send a message","i want to send a message","message","send message"]
+    default=["I see","hmmmm","okay","ok","ha"]
+    adbk=["read me a pdf","read me a file"]
     if cmd in greetings:
         return "Hey There,buddy!!"
-    elif cmd in sendmsg:
-        speak("Sure")
-        msg()
+    elif cmd in default:
+        return "Hmmm"
     elif cmd in gret:
         hr=int(datetime.datetime.now().hour)
         a=""
@@ -278,6 +278,11 @@ def response(cmd):
             st="Actually sir you should be \n wishing "+a+"\n and not "+cmd+"."+"\n Neverthless "+a+" ,sir!" 
             return st
     
+    elif cmd in adbk:
+        Audiobook()
+    elif "news" in a:
+        webbrowser.open("news.google.com")
+        return "opening news website(Could nnot search for specifics as news.google.com declined permission"
     elif(cmd=="Shutdown"or cmd=="shutdown"):
                 speak("Are you sure,sir?(Please check the prompt)")
                 window = Tk()
@@ -427,10 +432,11 @@ def response(cmd):
 
     elif cmd in appreciation:
             return("Thank You ! Sir .  I Like being appreciated!")
+     
     else:
             c=False
             for i in range(0,len(questions)):
-                if cmd+"\n" == questions[i] or cmd == keyword[i//6]:
+                if cmd+"\n" == questions[i]:
                     return(response[i//5])
                     c=True
                     break
@@ -440,31 +446,84 @@ def response(cmd):
             if c==False:
                         err_msg=["Hmm...I don't have an answer to that","I'm not sure I understand"]
                         speak(random.choice(err_msg))
-                        try:
-                            speak("But I found this on the web. Please check the terminal")
-                            print(kit.info("Artificial Intelligence", lines = 4))
-                        except:
-                            speak("Connection Error")
-
+                        speak("I foud this on the web")
+                        result= wikipedia.summary(cmd)
+                        s=""
+                        for i in result:
+                            if i==".":
+                                s=result.replace(".","\n")
+                        return s
+                    
                             
-            
-           
+
+def Audiobook():
+
+    
+    def Accept():
+            root.destroy()
+            window=Tk()
+            frame = Frame(window, width=300, height=80)
+            frame.pack_propagate(False) # prevent frame to resize to the labels size
+            frame.pack()
+            Label(text="What type of file do you want me to read").pack()
+            p_button=Button(window,text="PDF",command=pdf)
+            p_button.pack()
+            p_button.place(width=50,x=120,y=30)
+            t_button=Button(window,text="TXT",command=txt)
+            t_button.pack()
+            t_button.place(width=50,x=120,y=60)
+    def Decline():
+            Label(text="Sorry could not access the contents of your computer").pack()
+    def pdf():
+        window=Tk()
+        book = askopenfilename()
+        reader= PyPDF2.PdfFileReader(book)
+        pages = reader.numPages
+        window.mainloop()
+        for num in range(0,pages):
+            page = reader.getPage(num)
+            txt = page.extractText()
+            speak(txt)
+            print(txt)
+        window.destroy()
+    def txt():
+        window=Tk()
+        book = askopenfilename()
+        file=open(book)
+        speak(file.read())
+        print(file.read())
+        file.close()
+        window.destroy()
+        
+    root=Tk()
+    frame = Frame(root, width=300, height=80)
+    frame.pack_propagate(False) # prevent frame to resize to the labels size
+    label1=Label(text="SAGNIK would like to access the files on your computer")
+    label1.pack()
+    a_button=Button(root,text="Allow",command=Accept)
+    a_button.pack()
+    a_button.place(width=50,x=120,y=30)
+    d_button=Button(root,text="Deny",command=Decline)
+    d_button.pack()
+    d_button.place(width=50,x=120,y=60)
+    frame.pack()
+    root.mainloop()
 def Train():
         q=["","","","",""]
-        file=open("keywords(forMMANA).txt","a+")
+        file=open("intents.txt","a+")
         (speak("Enter recognizer tag"))
         tag=input("Enter recognizer tag").lower()
         tag=tag+"\n"
         file.write(tag)
         file.close()
-        file=open("Questions(forMMANA).txt","a+")
+        file=open("Questions.txt","a+")
         for i in range(0,len(q)):
             speak("Enter an avatar of the question")
             q[i]=input("Enter an avatar of the question").lower()
             q[i]=q[i]+"\n"
             file.write(q[i])    
         file.close()
-        file=open("response(for MMANA).txt","a+")
+        file=open("response.txt","a+")
         (speak("Interesting Questions What should I answer for this"))
         res=input("Interesting Questions .What should I answer for this?").lower()
         res=res+"\n"
@@ -718,51 +777,6 @@ def Window():
     frame.pack()
     btn1 = Button(window, text ="Exit", command = window.destroy).pack()
     
-    
-    window.mainloop()
-def msg():
-    window = Tk()
-    def Ph_dir(num,msg):
-        ph={"papa":"+919831300136"
-            ,"mana":"+919748033136"
-            ,"me":"+917044491700"}
-        num=ph[num]
-        try:
-                twilio.sendwhatmsg(num,msg,datetime.datetime.now().hour,datetime.datetime.now().minute+1)
-        except:
-                twilio.sendwhatmsg(num,msg,datetime.datetime.now().hour,datetime.datetime.now().minute+2)
-    input_user = StringVar()
-    input_2 = StringVar()
-    input_field = Entry(window, text=input_user)
-    input_field.pack(side=BOTTOM, fill=X)
-    Label(text="Message to send").pack(side=BOTTOM)
-    input_num = Entry(window,text=input_2)
-    input_num.pack(side=BOTTOM, fill=X)
-    Label(text="Who to send").pack(side=BOTTOM)
-    def enter_pressed(event):
-        
-        input_get = input_field.get()
-        print(input_get)
-        input_number = input_num.get()
-        print(input_number)
-        if input_number.isnumeric():
-            label = tkinter.Label(frame, text="Sending MEssage..Pls wait",relief=RAISED)
-            try:
-                twilio.sendwhatmsg(input_number,input_get,datetime.datetime.now().hour,datetime.datetime.now().minute+1)
-            except:
-                twilio.sendwhatmsg(input_number,input_get,datetime.datetime.now().hour,datetime.datetime.now().minute+2)
-        else:
-            Ph_dir(input_number,input_get)
-        label = tkinter.Label(frame, text="Sending MEssage..Pls wait",relief=RAISED)
-        input_user.set('')
-        input_2.set('')
-        label.pack()
-        label.place(width=500,x=250,y=0)
-        return "break"
-    frame = Frame(window, width=300, height=300)
-    frame.pack_propagate(False) # prevent frame to resize to the labels size
-    input_field.bind("<Return>", enter_pressed)
-    frame.pack()
     
     window.mainloop()
 def execute():
